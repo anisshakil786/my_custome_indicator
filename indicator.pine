@@ -45,7 +45,6 @@ use_cutoff          = input.bool(false, "Drawing Cutoff Time", inline = "CO", to
 cutoff              = input.session("1800-1801", "", inline = "CO", group = g_SETTINGS)
 
 var g_KZ            = "Killzones"
-max_days            = input.int(5, "Session Drawing Limit", 1, tooltip = "Only this many drawings will be kept on the chart, for each selected drawing type (killzone boxes, pivot lines, open lines, etc.)", group = g_KZ)
 tf_limit            = input.timeframe("60", "Timeframe Limit", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_KZ)
 show_kz             = input.bool(true, "Show Killzone Boxes", inline = "KZ", group = g_KZ)
 show_kz_text        = input.bool(true, "Display Text", inline = "KZ", group = g_KZ)
@@ -353,8 +352,6 @@ dwm_sep(string tf, bool use, line[] arr, color col) =>
     if use
         if timeframe.change(tf)
             arr.unshift(line.new(bar_index, high*1.0001, bar_index, low, style = htf_style, width = htf_width, extend = extend.both, color = col))
-            if not sep_unlimited and arr.size() > max_days
-                arr.pop().delete()
                 
 
 dwm_open(string tf, bool use, line[] lns, label[] lbls, dwm_info n, color col) =>
@@ -416,9 +413,6 @@ vline(bool use, bool t, line[] arr, color col) =>
     if use
         if t and not t[1]
             arr.unshift(line.new(bar_index, high*1.0001, bar_index, low, style = vl_style, width = vl_width, extend = extend.both, color = col))
-        if not v_unlimited
-            if arr.size() > max_days
-                arr.pop().delete()
 
                 
 vlines() =>
@@ -435,10 +429,6 @@ hz_line(bool use, bool t, hz hz, string txt, color col) =>
             hz.LN.unshift(line.new(bar_index, open, bar_index, open, style = hz_style, width = hz_width, color = col))
             hz.LB.unshift(label.new(bar_index, open, txt, style = label.style_label_left, color = transparent, textcolor = txt_color, size = lbl_size))
             array.unshift(hz.CO, false)
-            if not open_unlimited and hz.LN.size() > max_days
-                hz.LN.pop().delete()
-                hz.LB.pop().delete()
-                hz.CO.pop()
         if not t and hz.CO.size() > 0
             if not hz.CO.get(0)
                 hz.LN.get(0).set_x2(bar_index)
@@ -457,22 +447,6 @@ hz_lines() =>
         hz_line(use_h6, t_h6, hz_6, h6_text, h6_color)
         hz_line(use_h7, t_h7, hz_7, h7_text, h7_color)
         hz_line(use_h8, t_h8, hz_8, h8_text, h8_color)
-
-
-del_kz(kz k) =>
-    if k._box.size() > max_days
-        k._box.pop().delete()
-    if k._hi_line.size() > max_days
-        k._hi_line.pop().delete()
-        k._lo_line.pop().delete()
-        k._hi_valid.pop()
-        k._lo_valid.pop()
-        if show_midpoints
-            k._md_line.pop().delete()
-            k._md_valid.pop()
-    if k._hi_label.size() > max_days
-        k._hi_label.pop().delete()
-        k._lo_label.pop().delete()
 
 update_price_string(label L, float P) =>
     S = L.get_text()
@@ -583,7 +557,6 @@ manage_kz(kz kz, bool use, bool t, color c, string box_txt, string hi_txt, strin
                         kz._hi_label.unshift(label.new(time, high, _hi_txt, xloc = xloc.bar_time, color = transparent, textcolor = txt_color, style = label.style_label_down, size = lbl_size))
                         kz._lo_label.unshift(label.new(time, low,  _lo_txt, xloc = xloc.bar_time, color = transparent, textcolor = txt_color, style = label.style_label_up, size = lbl_size))
 
-            del_kz(kz)
         adjust_in_kz(kz, t)
         adjust_out_kz(kz, t)
 
