@@ -38,6 +38,12 @@ get_table_pos(pos) =>
     
 // ---------------------------------------- Inputs --------------------------------------------------
 var g_SETTINGS      = "Settings"
+
+enable_killzone     = input.bool(true, "Enable Killzone", group = g_SETTINGS)
+enable_dwm          = input.bool(true, "Enable Day - Week - Month", group = g_SETTINGS)
+enable_ema          = input.bool(true, "Enable EMA", group = g_SETTINGS)
+enable_extra_options= input.bool(true, "Enable Extra Options", group = g_SETTINGS)
+
 gmt_tz              = input.string('America/New_York', "Timezone", options = ['America/New_York','GMT-12','GMT-11','GMT-10','GMT-9','GMT-8','GMT-7','GMT-6','GMT-5','GMT-4','GMT-3','GMT-2','GMT-1','GMT+0','GMT+1','GMT+2','GMT+3','GMT+4','GMT+5','GMT+6','GMT+7','GMT+8','GMT+9','GMT+10','GMT+11','GMT+12','GMT+13','GMT+14'], tooltip = "Note GMT is not adjusted to reflect Daylight Saving Time changes", group = g_SETTINGS)
 lbl_size            = get_size(input.string('Normal', "Label Size", options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large', 'Huge'], tooltip = "The size of all labels", group = g_SETTINGS))
 txt_color           = input.color(color.black, "Text Color", tooltip = "The color of all label and table text", group = g_SETTINGS)
@@ -46,20 +52,21 @@ cutoff              = input.session("1800-1801", "", inline = "CO", group = g_SE
 
 
 var g_KZ            = "Killzones"
+
 tf_limit            = input.timeframe("60", "Timeframe Limit", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_KZ)
 show_kz             = input.bool(true, "Show Killzone Boxes", inline = "KZ", group = g_KZ)
 show_kz_text        = input.bool(true, "Display Text", inline = "KZ", group = g_KZ)
 show_pivots         = input.bool(true, "Show Pivots", inline = "PV", group = g_KZ)
 use_alerts          = input.bool(true, "Alert Broken Pivots", inline = "PV", tooltip = "The desired killzones must be enabled at the time that an alert is created, along with the show pivots option, in order for alerts to work", group = g_KZ)
-show_midpoints      = input.bool(false, "Show Pivot Midpoints", inline = "mp", group = g_KZ)
+show_midpoints      = input.bool(true, "Show Pivot Midpoints", inline = "mp", group = g_KZ)
 stop_midpoints      = input.bool(true, "Stop Once Mitigated", inline = "mp", group = g_KZ) 
 ext_pivots          = input.string("Until Mitigated", "Extend Pivots...", options = ['Until Mitigated', 'Past Mitigation'], group = g_KZ)
 ext_which           = input.string("Most Recent", "...From Which Sessions", options = ['Most Recent', 'All'], group = g_KZ)
 
 use_sydney_tokyo    = input.bool(true, "", inline = "SYD_TOK", group = g_KZ)
 st_txt              = input.string("Sydney + Tokyo", "", inline = "SYD_TOK", group = g_KZ)
-sydney_tokyo        = input.session("1700-2000", "", inline = "SYD_TOK", group = g_KZ)
-st_color            = input.color(color.green, "", inline = "SYD_TOK", group = g_KZ)
+sydney_tokyo        = input.session("1800-0200", "", inline = "SYD_TOK", group = g_KZ)
+st_color            = input.color(color.aqua, "", inline = "SYD_TOK", group = g_KZ)
 
 use_asia            = input.bool(true, "", inline = "ASIA", group = g_KZ)
 as_txt              = input.string("Asia", "", inline = "ASIA", group = g_KZ)
@@ -86,8 +93,8 @@ np_txt              = input.string("NY PM", "", inline = "NYPM", group = g_KZ)
 nypm                = input.session("1330-1600", "", inline = "NYPM", group = g_KZ)
 np_color            = input.color(color.purple, "", inline = "NYPM", group = g_KZ)
 
-box_transparency    = input.int(70, "Box Transparency", 0, 100, group = g_KZ)
-text_transparency   = input.int(50, "Text Transparency", 0, 100, group = g_KZ)
+box_transparency    = input.int(90, "Box Transparency", 0, 100, group = g_KZ)
+text_transparency   = input.int(90, "Text Transparency", 0, 100, group = g_KZ)
 kzp_style           = get_line_type(input.string(defval = 'Solid', title = "Pivot Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "KZP", group = g_KZ))
 kzp_width           = input.int(1, "", inline = "KZP", group = g_KZ)
 kzm_style           = get_line_type(input.string(defval = 'Dotted', title = "Midpoint Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "KZM", group = g_KZ))
@@ -95,32 +102,61 @@ kzm_width           = input.int(1, "", inline = "KZM", group = g_KZ)
 
 
 var g_DWM           = "Day - Week - Month"
-alert_HL            = input.bool(false, "Alert High/Low Break", tooltip = "Alert when any selected highs and lows are traded through. The desired timeframe's high/low option must be enabled at the time that an alert is created", group = g_DWM)
+
+alert_HL            = input.bool(true, "Alert High/Low Break", tooltip = "Alert when any selected highs and lows are traded through. The desired timeframe's high/low option must be enabled at the time that an alert is created", group = g_DWM)
 
 show_d_open         = input.bool(false, "D Open", inline = "DO", group = g_DWM)
-dhl                 = input.bool(false, "High/Low", inline = "DO", tooltip = "", group = g_DWM)
+dhl                 = input.bool(true, "High/Low", inline = "DO", tooltip = "", group = g_DWM)
 ds                  = input.bool(false, "Separators", inline = "DO", tooltip = "Mark where a new day begins", group = g_DWM)
-d_color             = input.color(color.blue, "", inline = "DO", group = g_DWM)
+d_color             = input.color(color.purple, "", inline = "DO", group = g_DWM)
 
 show_w_open         = input.bool(false, "W Open", inline = "WO", group = g_DWM)
-whl                 = input.bool(false, "High/Low", inline = "WO", tooltip = "", group = g_DWM)
+whl                 = input.bool(true, "High/Low", inline = "WO", tooltip = "", group = g_DWM)
 ws                  = input.bool(false, "Separators", inline = "WO", tooltip = "Mark where a new week begins", group = g_DWM)
-w_color             = input.color(#089981, "", inline = "WO", group = g_DWM)
+w_color             = input.color(color.purple, "", inline = "WO", group = g_DWM)
 
 show_m_open         = input.bool(false, "M Open", inline = "MO", group = g_DWM)
-mhl                 = input.bool(false, "High/Low", inline = "MO", tooltip = "", group = g_DWM)
+mhl                 = input.bool(true, "High/Low", inline = "MO", tooltip = "", group = g_DWM)
 ms                  = input.bool(false, "Separators", inline = "MO", tooltip = "Mark where a new month begins", group = g_DWM)
-m_color             = input.color(color.red, "", inline = "MO", group = g_DWM)
+m_color             = input.color(color.purple, "", inline = "MO", group = g_DWM)
 
 htf_style           = get_line_type(input.string(defval = 'Solid', title = "Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "D0", group = g_DWM))
-htf_width           = input.int(1, "", inline = "D0", group = g_DWM)
+htf_width           = input.int(2, "", inline = "D0", group = g_DWM)
 
 
-var g_OTHER_OPTIONS = "Other Options"
-use_true_day_open   = input.bool(true, "True Day Open", inline="TDO", group=g_OTHER_OPTIONS)
-true_day_open_style = get_line_type(input.string(defval='Solid', title="", options=['Solid', 'Dotted', 'Dashed'], inline="TDO", group=g_OTHER_OPTIONS))
-true_day_open_width = input.int(1, "", inline="TDO", group=g_OTHER_OPTIONS)
-true_day_open_color = input.color(color.black, "", inline="TDO", group=g_OTHER_OPTIONS)
+var g_EMA           = "EMA"
+
+use_ema1            = input.bool(true, "EMA 1", inline="EMA1", group=g_EMA)
+type_ema1           = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA1", group=g_EMA)
+source_ema1         = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA1", group=g_EMA)
+length_ema1         = input.int(5, "", inline="EMA1", group=g_EMA)
+color_ema1          = input.color(color.blue, "", inline="EMA1", group=g_EMA)
+
+use_ema2            = input.bool(true, "EMA 2", inline="EMA2", group=g_EMA)
+type_ema2           = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA2", group=g_EMA)
+source_ema2         = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA2", group=g_EMA)
+length_ema2         = input.int(50, "", inline="EMA2", group=g_EMA)
+color_ema2          = input.color(color.black, "", inline="EMA2", group=g_EMA)
+
+use_ema3            = input.bool(false, "EMA 3", inline="EMA3", group=g_EMA)
+type_ema3           = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA3", group=g_EMA)
+source_ema3         = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA3", group=g_EMA)
+length_ema3         = input.int(100, "", inline="EMA3", group=g_EMA)
+color_ema3          = input.color(color.green, "", inline="EMA3", group=g_EMA)
+
+use_ema4            = input.bool(true, "EMA 4", inline="EMA4", group=g_EMA)
+type_ema4           = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA4", group=g_EMA)
+source_ema4         = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA4", group=g_EMA)
+length_ema4         = input.int(200, "", inline="EMA4", group=g_EMA)
+color_ema4          = input.color(color.red, "", inline="EMA4", group=g_EMA)
+
+
+var g_Extra_Options = "Extra Options"
+
+use_true_day_open   = input.bool(true, "True Day Open", inline="TDO", group = g_Extra_Options)
+true_day_open_style = get_line_type(input.string(defval='Solid', title="", options=['Solid', 'Dotted', 'Dashed'], inline="TDO", group = g_Extra_Options))
+true_day_open_width = input.int(1, "", inline="TDO", group = g_Extra_Options)
+true_day_open_color = input.color(color.rgb(54, 58, 69, 70), "", inline="TDO", group = g_Extra_Options)
 
 // ---------------------------------------- Inputs --------------------------------------------------
 
@@ -200,6 +236,11 @@ var d_label = array.new_label()
 var w_label = array.new_label()
 var m_label = array.new_label()
 
+var float ma1 = na
+var float ma2 = na
+var float ma3 = na
+var float ma4 = na
+
 var transparent = #ffffff00
 var ext_current = ext_which == 'Most Recent'
 var ext_past = ext_pivots == 'Past Mitigation'
@@ -225,11 +266,23 @@ if mhl or show_m_open
 
 
 // ---------------------------------------- Functions --------------------------------------------------
+
 get_box_color(color c) =>
     result = color.new(c, box_transparency)
     
 get_text_color(color c) =>
     result = color.new(c, text_transparency)
+
+get_source(source) =>
+    switch source
+        "open" => open
+        "high" => high
+        "low" => low
+        "close" => close
+
+get_ma(type, source, length) =>
+    type == "SMA" ? ta.sma(source, length) : ta.ema(source, length)
+
 // ---------------------------------------- Functions --------------------------------------------------
 
 
@@ -385,14 +438,37 @@ manage_kz(kz kz, bool use, bool t, color c, string box_txt) =>
         adjust_out_kz(kz, t)
 
 
-manage_kz(st_kz, use_sydney_tokyo, t_st, st_color, st_txt)
-manage_kz(as_kz, use_asia, t_as, as_color, as_txt)
-manage_kz(lo_kz, use_london, t_lo, lo_color, lo_txt)
-manage_kz(na_kz, use_nyam, t_na, na_color, na_txt)
-manage_kz(nl_kz, use_nylu, t_nl, nl_color, nl_txt)
-manage_kz(np_kz, use_nypm, t_np, np_color, np_txt)
+if enable_killzone
+    manage_kz(st_kz, use_sydney_tokyo, t_st, st_color, st_txt)
+    manage_kz(as_kz, use_asia, t_as, as_color, as_txt)
+    manage_kz(lo_kz, use_london, t_lo, lo_color, lo_txt)
+    manage_kz(na_kz, use_nyam, t_na, na_color, na_txt)
+    manage_kz(nl_kz, use_nylu, t_nl, nl_color, nl_txt)
+    manage_kz(np_kz, use_nypm, t_np, np_color, np_txt)
 
-dwm()
-hz_line(use_true_day_open, t_tdo, hz_tdo, "True Day Open", true_day_open_color)
+if enable_dwm
+    dwm()
+
+if enable_extra_options
+    hz_line(use_true_day_open, t_tdo, hz_tdo, "True Day Open", true_day_open_color)
+
+if enable_ema
+    if use_ema1
+        source1 = get_source(source_ema1)
+        ma1 := get_ma(type_ema1, source1, length_ema1)
+    if use_ema2
+        source2 = get_source(source_ema2)
+        ma2 := get_ma(type_ema2, source2, length_ema2)
+    if use_ema3
+        source3 = get_source(source_ema3)
+        ma3 := get_ma(type_ema3, source3, length_ema3)
+    if use_ema4
+        source4 = get_source(source_ema4)
+        ma4 := get_ma(type_ema4, source4, length_ema4)
+
+plot(use_ema1 ? ma1 : na, title="EMA 1", color=color_ema1, linewidth=1)
+plot(use_ema2 ? ma2 : na, title="EMA 2", color=color_ema2, linewidth=1)
+plot(use_ema3 ? ma3 : na, title="EMA 3", color=color_ema3, linewidth=1)
+plot(use_ema4 ? ma4 : na, title="EMA 4", color=color_ema4, linewidth=1)
 
 // ---------------------------------------- Core Logic --------------------------------------------------
