@@ -48,6 +48,13 @@ var g_KZ            = "Killzones"
 tf_limit            = input.timeframe("60", "Timeframe Limit", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_KZ)
 show_kz             = input.bool(true, "Show Killzone Boxes", inline = "KZ", group = g_KZ)
 show_kz_text        = input.bool(true, "Display Text", inline = "KZ", group = g_KZ)
+show_pivots         = input.bool(true, "Show Pivots", inline = "PV", group = g_KZ)
+use_alerts          = input.bool(true, "Alert Broken Pivots", inline = "PV", tooltip = "The desired killzones must be enabled at the time that an alert is created, along with the show pivots option, in order for alerts to work", group = g_KZ)
+show_midpoints      = input.bool(false, "Show Pivot Midpoints", inline = "mp", group = g_KZ)
+stop_midpoints      = input.bool(true, "Stop Once Mitigated", inline = "mp", group = g_KZ) 
+ext_pivots          = input.string("Until Mitigated", "Extend Pivots...", options = ['Until Mitigated', 'Past Mitigation'], group = g_KZ)
+ext_which           = input.string("Most Recent", "...From Which Sessions", options = ['Most Recent', 'All'], group = g_KZ)
+
 
 use_sydney_tokyo    = input.bool(true, "", inline = "SYD_TOK", group = g_KZ)
 st_txt              = input.string("Sydney + Tokyo", "", inline = "SYD_TOK", group = g_KZ)
@@ -81,38 +88,11 @@ np_color            = input.color(color.purple, "", inline = "NYPM", group = g_K
 
 box_transparency    = input.int(70, "Box Transparency", 0, 100, group = g_KZ)
 text_transparency   = input.int(50, "Text Transparency", 0, 100, group = g_KZ)
+kzp_style           = get_line_type(input.string(defval = 'Solid', title = "Pivot Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "KZP", group = g_KZ))
+kzp_width           = input.int(1, "", inline = "KZP", group = g_KZ)
+kzm_style           = get_line_type(input.string(defval = 'Dotted', title = "Midpoint Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "KZM", group = g_KZ))
+kzm_width           = input.int(1, "", inline = "KZM", group = g_KZ)
 
-
-var g_LABELS        = "Killzone Pivots"
-show_pivots         = input.bool(true, "Show Pivots", inline = "PV", group = g_LABELS)
-use_alerts          = input.bool(true, "Alert Broken Pivots", inline = "PV", tooltip = "The desired killzones must be enabled at the time that an alert is created, along with the show pivots option, in order for alerts to work", group = g_LABELS)
-show_midpoints      = input.bool(false, "Show Pivot Midpoints", inline = "mp", group = g_LABELS)
-stop_midpoints      = input.bool(true, "Stop Once Mitigated", inline = "mp", group = g_LABELS) 
-show_labels         = input.bool(true, "Show Pivot Labels", inline = "LB", tooltip = "Show labels denoting each killzone's high and low. Optionally choose to show the price of each level. Right side will show labels on the right-hand side of the chart until they are reached", group = g_LABELS)
-label_price         = input.bool(false, "Display Price", inline = "LB", group = g_LABELS)
-label_right         = input.bool(false, "Right Side", inline = "LB", group = g_LABELS)
-ext_pivots          = input.string("Until Mitigated", "Extend Pivots...", options = ['Until Mitigated', 'Past Mitigation'], group = g_LABELS)
-ext_which           = input.string("Most Recent", "...From Which Sessions", options = ['Most Recent', 'All'], group = g_LABELS)
-
-ash_str             = input.string("AS.H", "Killzone 1 Labels", inline = "L_AS", group = g_LABELS)
-asl_str             = input.string("AS.L", "", inline = "L_AS", group = g_LABELS)
-
-loh_str             = input.string("LO.H", "Killzone 2 Labels", inline = "L_LO", group = g_LABELS)
-lol_str             = input.string("LO.L", "", inline = "L_LO", group = g_LABELS)
-
-nah_str             = input.string("NYAM.H", "Killzone 3 Labels", inline = "L_NA", group = g_LABELS)
-nal_str             = input.string("NYAM.L", "", inline = "L_NA", group = g_LABELS)
-
-nlh_str             = input.string("NYL.H", "Killzone 4 Labels", inline = "L_NL", group = g_LABELS)
-nll_str             = input.string("NYL.L", "", inline = "L_NL", group = g_LABELS)
-
-nph_str             = input.string("NYPM.H", "Killzone 5 Labels", inline = "L_NP", group = g_LABELS)
-npl_str             = input.string("NYPM.L", "", inline = "L_NP", group = g_LABELS)
-
-kzp_style           = get_line_type(input.string(defval = 'Solid', title = "Pivot Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "KZP", group = g_LABELS))
-kzp_width           = input.int(1, "", inline = "KZP", group = g_LABELS)
-kzm_style           = get_line_type(input.string(defval = 'Dotted', title = "Midpoint Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "KZM", group = g_LABELS))
-kzm_width           = input.int(1, "", inline = "KZM", group = g_LABELS)
 
 var g_DWM           = "Day - Week - Month"
 sep_unlimited       = input.bool(false, "Unlimited", tooltip = "Unlimited will show as many of the selected lines as possible. Otherwise, the session drawing limit will be used", group = g_DWM)
@@ -223,9 +203,6 @@ type kz
     line[] _md_line
     line[] _lo_line
 
-    label[] _hi_label
-    label[] _lo_label
-
     bool[] _hi_valid
     bool[] _md_valid
     bool[] _lo_valid
@@ -251,12 +228,12 @@ type dwm_info
     float ph = na
     float pl = na
 
-var st_kz = kz.new(st_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_label(), array.new_label(), array.new_bool(), array.new_bool(), array.new_bool())
-var as_kz = kz.new(as_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_label(), array.new_label(), array.new_bool(), array.new_bool(), array.new_bool())
-var lo_kz = kz.new(lo_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_label(), array.new_label(), array.new_bool(), array.new_bool(), array.new_bool())
-var na_kz = kz.new(na_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_label(), array.new_label(), array.new_bool(), array.new_bool(), array.new_bool())
-var nl_kz = kz.new(nl_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_label(), array.new_label(), array.new_bool(), array.new_bool(), array.new_bool())
-var np_kz = kz.new(np_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_label(), array.new_label(), array.new_bool(), array.new_bool(), array.new_bool())
+var st_kz = kz.new(st_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
+var as_kz = kz.new(as_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
+var lo_kz = kz.new(lo_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
+var na_kz = kz.new(na_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
+var nl_kz = kz.new(nl_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
+var np_kz = kz.new(np_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 
 var hz_1 = hz.new(array.new_line(), array.new_label(), array.new_bool())
 var hz_2 = hz.new(array.new_line(), array.new_label(), array.new_bool())
@@ -448,11 +425,6 @@ hz_lines() =>
         hz_line(use_h7, t_h7, hz_7, h7_text, h7_color)
         hz_line(use_h8, t_h8, hz_8, h8_text, h8_color)
 
-update_price_string(label L, float P) =>
-    S = L.get_text()
-    pre = str.substring(S, 0, str.pos(S, " ")) 
-    str.trim(pre)
-    L.set_text(str.format("{0} ({1})", pre, P))
 
 adjust_in_kz(kz kz, bool t) =>
     if t
@@ -475,19 +447,6 @@ adjust_in_kz(kz kz, bool t) =>
                 kz._md_line.get(0).set_x2(time)
                 kz._md_line.get(0).set_xy1(time, math.avg(kz._hi_line.get(0).get_y2(), kz._lo_line.get(0).get_y2()))
                 kz._md_line.get(0).set_xy2(time, math.avg(kz._hi_line.get(0).get_y2(), kz._lo_line.get(0).get_y2()))
-
-        if show_labels and kz._hi_label.size() > 0
-            if label_right
-                kz._hi_label.get(0).set_x(time)
-                kz._lo_label.get(0).set_x(time)
-            if high > kz._hi_label.get(0).get_y()
-                kz._hi_label.get(0).set_xy(time, high)
-                if label_price
-                    update_price_string(kz._hi_label.get(0), high)
-            if low < kz._lo_label.get(0).get_y()
-                kz._lo_label.get(0).set_xy(time, low)
-                if label_price
-                    update_price_string(kz._lo_label.get(0), low)
     
 
 adjust_out_kz(kz kz, bool t) =>
@@ -496,27 +455,19 @@ adjust_out_kz(kz kz, bool t) =>
             if not ext_current or (ext_current and i == 0)
                 if ext_past ? true : (kz._hi_valid.get(i) == true)
                     kz._hi_line.get(i).set_x2(time)
-                    if show_labels and label_right
-                        kz._hi_label.get(i).set_x(time)
                 if high > kz._hi_line.get(i).get_y1() and kz._hi_valid.get(i) == true
                     if use_alerts and i == 0
                         alert("Broke "+kz._title+" High", alert.freq_once_per_bar)
                     kz._hi_valid.set(i, false)
-                    if show_labels and label_right
-                        kz._hi_label.get(0).set_style(label.style_label_down)
                 else if (use_cutoff ? t_co : false)
                     kz._hi_valid.set(i, false)
                     
                 if ext_past ? true : (kz._lo_valid.get(i) == true)
                     kz._lo_line.get(i).set_x2(time)
-                    if show_labels and label_right
-                        kz._lo_label.get(i).set_x(time)
                 if low < kz._lo_line.get(i).get_y1() and kz._lo_valid.get(i) == true
                     if use_alerts and i == 0
                         alert("Broke "+kz._title+" Low", alert.freq_once_per_bar)
                     kz._lo_valid.set(i, false)
-                    if show_labels and label_right
-                        kz._lo_label.get(0).set_style(label.style_label_up)
                 else if (use_cutoff ? t_co : false)
                     kz._lo_valid.set(i, false)
                     
@@ -530,7 +481,7 @@ adjust_out_kz(kz kz, bool t) =>
                 break
 
 
-manage_kz(kz kz, bool use, bool t, color c, string box_txt, string hi_txt, string lo_txt) => 
+manage_kz(kz kz, bool use, bool t, color c, string box_txt) => 
     if timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit) and use
         if t and not t[1]
             _c = get_box_color(c)
@@ -547,26 +498,16 @@ manage_kz(kz kz, bool use, bool t, color c, string box_txt, string hi_txt, strin
                 array.unshift(kz._hi_valid, true)
                 array.unshift(kz._lo_valid, true) 
 
-                if show_labels
-                    _hi_txt = label_price ? str.format("{0} ({1})", hi_txt, high) : hi_txt
-                    _lo_txt = label_price ? str.format("{0} ({1})", lo_txt, low)  : lo_txt
-                    if label_right
-                        kz._hi_label.unshift(label.new(time, high, _hi_txt, xloc = xloc.bar_time, color = transparent, textcolor = txt_color, style = label.style_label_left, size = lbl_size))
-                        kz._lo_label.unshift(label.new(time, low,  _lo_txt, xloc = xloc.bar_time, color = transparent, textcolor = txt_color, style = label.style_label_left, size = lbl_size))
-                    else
-                        kz._hi_label.unshift(label.new(time, high, _hi_txt, xloc = xloc.bar_time, color = transparent, textcolor = txt_color, style = label.style_label_down, size = lbl_size))
-                        kz._lo_label.unshift(label.new(time, low,  _lo_txt, xloc = xloc.bar_time, color = transparent, textcolor = txt_color, style = label.style_label_up, size = lbl_size))
-
         adjust_in_kz(kz, t)
         adjust_out_kz(kz, t)
 
 
-manage_kz(st_kz, use_sydney_tokyo, t_st, st_color, st_txt, "ST.H", "ST.L")
-manage_kz(as_kz, use_asia, t_as, as_color, as_txt, ash_str, asl_str)
-manage_kz(lo_kz, use_london, t_lo, lo_color, lo_txt, loh_str, lol_str)
-manage_kz(na_kz, use_nyam, t_na, na_color, na_txt, nah_str, nal_str)
-manage_kz(nl_kz, use_nylu, t_nl, nl_color, nl_txt, nlh_str, nll_str)
-manage_kz(np_kz, use_nypm, t_np, np_color, np_txt, nph_str, npl_str)
+manage_kz(st_kz, use_sydney_tokyo, t_st, st_color, st_txt)
+manage_kz(as_kz, use_asia, t_as, as_color, as_txt)
+manage_kz(lo_kz, use_london, t_lo, lo_color, lo_txt)
+manage_kz(na_kz, use_nyam, t_na, na_color, na_txt)
+manage_kz(nl_kz, use_nylu, t_nl, nl_color, nl_txt)
+manage_kz(np_kz, use_nypm, t_np, np_color, np_txt)
 
 dwm() 
 vlines()
