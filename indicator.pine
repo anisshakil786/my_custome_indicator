@@ -2,7 +2,7 @@
 // © Muhammad_Anis
 
 //@version=5
-indicator("My Custome Indicator 2.0", "My Custome Indicator 2.0", true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500) 
+indicator("My Custome Indicator 2.0", "My Custome Indicator 2.0", true, max_lines_count = 500, max_boxes_count = 500)
 
 
 // ---------------------------------------- Constant Functions --------------------------------------------------
@@ -44,6 +44,7 @@ txt_color           = input.color(color.black, "Text Color", tooltip = "The colo
 use_cutoff          = input.bool(false, "Drawing Cutoff Time", inline = "CO", tooltip = "When enabled, all pivots and open price lines will stop extending at this time", group = g_SETTINGS)
 cutoff              = input.session("1800-1801", "", inline = "CO", group = g_SETTINGS)
 
+
 var g_KZ            = "Killzones"
 tf_limit            = input.timeframe("60", "Timeframe Limit", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_KZ)
 show_kz             = input.bool(true, "Show Killzone Boxes", inline = "KZ", group = g_KZ)
@@ -54,7 +55,6 @@ show_midpoints      = input.bool(false, "Show Pivot Midpoints", inline = "mp", g
 stop_midpoints      = input.bool(true, "Stop Once Mitigated", inline = "mp", group = g_KZ) 
 ext_pivots          = input.string("Until Mitigated", "Extend Pivots...", options = ['Until Mitigated', 'Past Mitigation'], group = g_KZ)
 ext_which           = input.string("Most Recent", "...From Which Sessions", options = ['Most Recent', 'All'], group = g_KZ)
-
 
 use_sydney_tokyo    = input.bool(true, "", inline = "SYD_TOK", group = g_KZ)
 st_txt              = input.string("Sydney + Tokyo", "", inline = "SYD_TOK", group = g_KZ)
@@ -95,7 +95,6 @@ kzm_width           = input.int(1, "", inline = "KZM", group = g_KZ)
 
 
 var g_DWM           = "Day - Week - Month"
-sep_unlimited       = input.bool(false, "Unlimited", tooltip = "Unlimited will show as many of the selected lines as possible. Otherwise, the session drawing limit will be used", group = g_DWM)
 alert_HL            = input.bool(false, "Alert High/Low Break", tooltip = "Alert when any selected highs and lows are traded through. The desired timeframe's high/low option must be enabled at the time that an alert is created", group = g_DWM)
 
 show_d_open         = input.bool(false, "D Open", inline = "DO", group = g_DWM)
@@ -116,80 +115,13 @@ m_color             = input.color(color.red, "", inline = "MO", group = g_DWM)
 htf_style           = get_line_type(input.string(defval = 'Solid', title = "Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "D0", group = g_DWM))
 htf_width           = input.int(1, "", inline = "D0", group = g_DWM)
 
-dow_labels          = input.bool(true, "Day of Week Labels", inline = "DOW", group = g_DWM)
-dow_yloc            = input.string('Bottom', "", options = ['Top', 'Bottom'], inline = "DOW", group = g_DWM)
-dow_xloc            = input.string('Midnight', "", options = ['Midnight', 'Midday'], inline = "DOW", group = g_DWM)
-dow_hide_wknd       = input.bool(true, "Hide Weekend Labels", group = g_DWM)
 
+var g_OTHER_OPTIONS = "Other Options"
+use_true_day_open   = input.bool(true, "True Day Open", inline="TDO", group=g_OTHER_OPTIONS)
+true_day_open_style = get_line_type(input.string(defval='Solid', title="", options=['Solid', 'Dotted', 'Dashed'], inline="TDO", group=g_OTHER_OPTIONS))
+true_day_open_width = input.int(1, "", inline="TDO", group=g_OTHER_OPTIONS)
+true_day_open_color = input.color(color.black, "", inline="TDO", group=g_OTHER_OPTIONS)
 
-var g_OPEN          = "Opening Prices"
-open_unlimited      = input.bool(false, "Unlimited", tooltip = "Unlimited will show as many of the selected lines as possible. Otherwise, the session drawing limit will be used", group = g_OPEN)
-
-use_h1              = input.bool(false, "", inline = "H1", group = g_OPEN)
-h1_text             = input.string("True Day Open", "", inline = "H1", group = g_OPEN)
-h1                  = input.session("0000-0001", "", inline = "H1", group = g_OPEN)
-h1_color            = input.color(color.black, "", inline = "H1", group = g_OPEN)
-
-use_h2              = input.bool(false, "", inline = "H2", group = g_OPEN)
-h2_text             = input.string("06:00", "", inline = "H2", group = g_OPEN)
-h2                  = input.session("0600-0601", "", inline = "H2", group = g_OPEN)
-h2_color            = input.color(color.black, "", inline = "H2", group = g_OPEN)
-
-use_h3              = input.bool(false, "", inline = "H3", group = g_OPEN)
-h3_text             = input.string("10:00", "", inline = "H3", group = g_OPEN)
-h3                  = input.session("1000-1001", "", inline = "H3", group = g_OPEN)
-h3_color            = input.color(color.black, "", inline = "H3", group = g_OPEN)
-
-use_h4              = input.bool(false, "", inline = "H4", group = g_OPEN)
-h4_text             = input.string("14:00", "", inline = "H4", group = g_OPEN)
-h4                  = input.session("1400-1401", "", inline = "H4", group = g_OPEN)
-h4_color            = input.color(color.black, "", inline = "H4", group = g_OPEN)
-
-use_h5              = input.bool(false, "", inline = "H5", group = g_OPEN)
-h5_text             = input.string("00:00", "", inline = "H5", group = g_OPEN)
-h5                  = input.session("0000-0001", "", inline = "H5", group = g_OPEN)
-h5_color            = input.color(color.black, "", inline = "H5", group = g_OPEN)
-
-use_h6              = input.bool(false, "", inline = "H6", group = g_OPEN)
-h6_text             = input.string("00:00", "", inline = "H6", group = g_OPEN)
-h6                  = input.session("0000-0001", "", inline = "H6", group = g_OPEN)
-h6_color            = input.color(color.black, "", inline = "H6", group = g_OPEN)
-
-use_h7              = input.bool(false, "", inline = "H7", group = g_OPEN)
-h7_text             = input.string("00:00", "", inline = "H7", group = g_OPEN)
-h7                  = input.session("0000-0001", "", inline = "H7", group = g_OPEN)
-h7_color            = input.color(color.black, "", inline = "H7", group = g_OPEN)
-
-use_h8              = input.bool(false, "", inline = "H8", group = g_OPEN)
-h8_text             = input.string("00:00", "", inline = "H8", group = g_OPEN)
-h8                  = input.session("0000-0001", "", inline = "H8", group = g_OPEN)
-h8_color            = input.color(color.black, "", inline = "H8", group = g_OPEN)
-
-hz_style            = get_line_type(input.string(defval = 'Dotted', title = "Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "H0", group = g_OPEN))
-hz_width            = input.int(1, "", inline = "H0", group = g_OPEN)
-
-
-var g_VERTICAL      = "Timestamps"
-v_unlimited         = input.bool(false, "Unlimited", tooltip = "Unlimited will show as many of the selected lines as possible. Otherwise, the session drawing limit will be used", group = g_VERTICAL)
-
-use_v1              = input.bool(false, "", inline = "V1", group = g_VERTICAL)
-v1                  = input.session("0000-0001", "", inline = "V1", group = g_VERTICAL)
-v1_color            = input.color(color.black, "", inline = "V1", group = g_VERTICAL)
-
-use_v2              = input.bool(false, "", inline = "V2", group = g_VERTICAL)
-v2                  = input.session("0800-0801", "", inline = "V2", group = g_VERTICAL)
-v2_color            = input.color(color.black, "", inline = "V2", group = g_VERTICAL)
-
-use_v3              = input.bool(false, "", inline = "V3", group = g_VERTICAL)
-v3                  = input.session("1000-1001", "", inline = "V3", group = g_VERTICAL)
-v3_color            = input.color(color.black, "", inline = "V3", group = g_VERTICAL)
-
-use_v4              = input.bool(false, "", inline = "V4", group = g_VERTICAL)
-v4                  = input.session("1200-1201", "", inline = "V4", group = g_VERTICAL)
-v4_color            = input.color(color.black, "", inline = "V4", group = g_VERTICAL)
-
-vl_style            = get_line_type(input.string(defval = 'Dotted', title = "Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "V0", group = g_VERTICAL))
-vl_width            = input.int(1, "", inline = "V0", group = g_VERTICAL)
 // ---------------------------------------- Inputs --------------------------------------------------
 
 
@@ -235,14 +167,8 @@ var na_kz = kz.new(na_txt, array.new_box(), array.new_line(), array.new_line(), 
 var nl_kz = kz.new(nl_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 var np_kz = kz.new(np_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 
-var hz_1 = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var hz_2 = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var hz_3 = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var hz_4 = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var hz_5 = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var hz_6 = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var hz_7 = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var hz_8 = hz.new(array.new_line(), array.new_label(), array.new_bool())
+var hz_tdo = hz.new(array.new_line(), array.new_label(), array.new_bool())
+var float true_day_open_price = na
 
 var d_hl = dwm_hl.new(array.new_line(), array.new_line(), array.new_label(), array.new_label())
 var w_hl = dwm_hl.new(array.new_line(), array.new_line(), array.new_label(), array.new_label())
@@ -260,19 +186,7 @@ t_nl = not na(time("", nylu, gmt_tz))
 t_np = not na(time("", nypm, gmt_tz))
 t_co = not na(time("", cutoff, gmt_tz))
 
-t_h1 = not na(time("", h1, gmt_tz))
-t_h2 = not na(time("", h2, gmt_tz))
-t_h3 = not na(time("", h3, gmt_tz))
-t_h4 = not na(time("", h4, gmt_tz))
-t_h5 = not na(time("", h5, gmt_tz))
-t_h6 = not na(time("", h6, gmt_tz))
-t_h7 = not na(time("", h7, gmt_tz))
-t_h8 = not na(time("", h8, gmt_tz))
-
-t_v1 = not na(time("", v1, gmt_tz))
-t_v2 = not na(time("", v2, gmt_tz))
-t_v3 = not na(time("", v3, gmt_tz))
-t_v4 = not na(time("", v4, gmt_tz))
+t_tdo = not na(time("", "0000-0001", gmt_tz))
 
 var d_sep_line = array.new_line()
 var w_sep_line = array.new_line()
@@ -285,11 +199,6 @@ var m_line = array.new_line()
 var d_label = array.new_label()
 var w_label = array.new_label()
 var m_label = array.new_label()
-
-var v1_line = array.new_line()
-var v2_line = array.new_line()
-var v3_line = array.new_line()
-var v4_line = array.new_line()
 
 var transparent = #ffffff00
 var ext_current = ext_which == 'Most Recent'
@@ -386,24 +295,10 @@ dwm() =>
         dwm_hl("M", mhl, m_hl, m_info, m_color)
 
 
-vline(bool use, bool t, line[] arr, color col) =>
-    if use
-        if t and not t[1]
-            arr.unshift(line.new(bar_index, high*1.0001, bar_index, low, style = vl_style, width = vl_width, extend = extend.both, color = col))
-
-                
-vlines() =>
-    if timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit)
-        vline(use_v1, t_v1, v1_line, v1_color)
-        vline(use_v2, t_v2, v2_line, v2_color)
-        vline(use_v3, t_v3, v3_line, v3_color)
-        vline(use_v4, t_v4, v4_line, v4_color)
-
-
 hz_line(bool use, bool t, hz hz, string txt, color col) =>
     if use
         if t and not t[1]
-            hz.LN.unshift(line.new(bar_index, open, bar_index, open, style = hz_style, width = hz_width, color = col))
+            hz.LN.unshift(line.new(bar_index, open, bar_index, open, style = true_day_open_style, width = true_day_open_width, color = col))
             hz.LB.unshift(label.new(bar_index, open, txt, style = label.style_label_left, color = transparent, textcolor = txt_color, size = lbl_size))
             array.unshift(hz.CO, false)
         if not t and hz.CO.size() > 0
@@ -412,18 +307,6 @@ hz_line(bool use, bool t, hz hz, string txt, color col) =>
                 hz.LB.get(0).set_x(bar_index)
                 if (use_cutoff ? t_co : false)
                     hz.CO.set(0, true)
-
-
-hz_lines() =>
-    if timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit)
-        hz_line(use_h1, t_h1, hz_1, h1_text, h1_color)
-        hz_line(use_h2, t_h2, hz_2, h2_text, h2_color)
-        hz_line(use_h3, t_h3, hz_3, h3_text, h3_color)
-        hz_line(use_h4, t_h4, hz_4, h4_text, h4_color)
-        hz_line(use_h5, t_h5, hz_5, h5_text, h5_color)
-        hz_line(use_h6, t_h6, hz_6, h6_text, h6_color)
-        hz_line(use_h7, t_h7, hz_7, h7_text, h7_color)
-        hz_line(use_h8, t_h8, hz_8, h8_text, h8_color)
 
 
 adjust_in_kz(kz kz, bool t) =>
@@ -509,29 +392,7 @@ manage_kz(na_kz, use_nyam, t_na, na_color, na_txt)
 manage_kz(nl_kz, use_nylu, t_nl, nl_color, nl_txt)
 manage_kz(np_kz, use_nypm, t_np, np_color, np_txt)
 
-dwm() 
-vlines()
-hz_lines()
-
-new_dow_time = dow_xloc == 'Midday' ? time - timeframe.in_seconds("D") / 2 * 1000 : time
-new_day = dayofweek(new_dow_time, gmt_tz) != dayofweek(new_dow_time, gmt_tz)[1]
-
-var dow_top = dow_yloc == 'Top'
-
-var saturday = "SATURDAY"
-var sunday = "SUNDAY"
-var monday = "MONDAY"
-var tuesday = "TUESDAY"
-var wednesday = "WEDNESDAY"
-var thursday = "THURSDAY"
-var friday = "FRIDAY"
-
-plotchar(dow_labels and timeframe.isintraday and dayofweek(new_dow_time, gmt_tz) == 1 and new_day and not dow_hide_wknd, location = dow_top ? location.top : location.bottom, char = "", textcolor = txt_color, text = sunday)
-plotchar(dow_labels and timeframe.isintraday and dayofweek(new_dow_time, gmt_tz) == 2 and new_day, location = dow_top ? location.top : location.bottom, char = "", textcolor = txt_color, text = monday)
-plotchar(dow_labels and timeframe.isintraday and dayofweek(new_dow_time, gmt_tz) == 3 and new_day, location = dow_top ? location.top : location.bottom, char = "", textcolor = txt_color, text = tuesday)
-plotchar(dow_labels and timeframe.isintraday and dayofweek(new_dow_time, gmt_tz) == 4 and new_day, location = dow_top ? location.top : location.bottom, char = "", textcolor = txt_color, text = wednesday)
-plotchar(dow_labels and timeframe.isintraday and dayofweek(new_dow_time, gmt_tz) == 5 and new_day, location = dow_top ? location.top : location.bottom, char = "", textcolor = txt_color, text = thursday)
-plotchar(dow_labels and timeframe.isintraday and dayofweek(new_dow_time, gmt_tz) == 6 and new_day, location = dow_top ? location.top : location.bottom, char = "", textcolor = txt_color, text = friday)
-plotchar(dow_labels and timeframe.isintraday and dayofweek(new_dow_time, gmt_tz) == 7 and new_day and not dow_hide_wknd, location = dow_top ? location.top : location.bottom, char = "", textcolor = txt_color, text = saturday)
+dwm()
+hz_line(use_true_day_open, t_tdo, hz_tdo, "True Day Open", true_day_open_color)
 
 // ---------------------------------------- Core Logic --------------------------------------------------
