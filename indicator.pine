@@ -42,7 +42,7 @@ enable_ema = input.bool(true, "Enable EMA", group = g_SETTINGS)
 enable_extra_options = input.bool(true, "Enable Extra Options", group = g_SETTINGS)
 
 gmt_tz = input.string('America/New_York', "Timezone", options = ['America/New_York', 'GMT-12', 'GMT-11', 'GMT-10', 'GMT-9', 'GMT-8', 'GMT-7', 'GMT-6', 'GMT-5', 'GMT-4', 'GMT-3', 'GMT-2', 'GMT-1', 'GMT+0', 'GMT+1', 'GMT+2', 'GMT+3', 'GMT+4', 'GMT+5', 'GMT+6', 'GMT+7', 'GMT+8', 'GMT+9', 'GMT+10', 'GMT+11', 'GMT+12', 'GMT+13', 'GMT+14'], tooltip = "Note GMT is not adjusted to reflect Daylight Saving Time changes", group = g_SETTINGS)
-lbl_size = get_size(input.string('Normal', "Label Size", options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large', 'Huge'], tooltip = "The size of all labels", group = g_SETTINGS))
+lbl_size = get_size(input.string('Small', "Label Size", options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large', 'Huge'], tooltip = "The size of all labels", group = g_SETTINGS))
 txt_color = input.color(color.black, "Text Color", tooltip = "The color of all label and table text", group = g_SETTINGS)
 use_cutoff = input.bool(false, "Drawing Cutoff Time", inline = "CO", tooltip = "When enabled, all pivots and open price lines will stop extending at this time", group = g_SETTINGS)
 cutoff = input.session("1800-1801", "", inline = "CO", group = g_SETTINGS)
@@ -103,16 +103,19 @@ alert_HL = input.bool(true, "Alert High/Low Break", tooltip = "Alert when any se
 show_d_open = input.bool(false, "D Open", inline = "DO", group = g_DWM)
 dhl = input.bool(true, "High/Low", inline = "DO", tooltip = "", group = g_DWM)
 ds = input.bool(false, "Separators", inline = "DO", tooltip = "Mark where a new day begins", group = g_DWM)
+tf_limit_daily = input.timeframe("240", "", inline = "DO", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_DWM)
 d_color = input.color(color.purple, "", inline = "DO", group = g_DWM)
 
 show_w_open = input.bool(false, "W Open", inline = "WO", group = g_DWM)
 whl = input.bool(true, "High/Low", inline = "WO", tooltip = "", group = g_DWM)
 ws = input.bool(false, "Separators", inline = "WO", tooltip = "Mark where a new week begins", group = g_DWM)
+tf_limit_weekly = input.timeframe("D", "", inline = "WO", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_DWM)
 w_color = input.color(color.purple, "", inline = "WO", group = g_DWM)
 
 show_m_open = input.bool(false, "M Open", inline = "MO", group = g_DWM)
 mhl = input.bool(true, "High/Low", inline = "MO", tooltip = "", group = g_DWM)
 ms = input.bool(false, "Separators", inline = "MO", tooltip = "Mark where a new month begins", group = g_DWM)
+tf_limit_monthly = input.timeframe("W", "", inline = "MO", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_DWM)
 m_color = input.color(color.purple, "", inline = "MO", group = g_DWM)
 
 htf_style = get_line_type(input.string(defval = 'Solid', title = "Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "D0", group = g_DWM))
@@ -278,8 +281,8 @@ dwm_sep(string tf, bool use, line[] arr, color col) =>
     if use and timeframe.change(tf)
         arr.unshift(line.new(bar_index, high * 1.0001, bar_index, low, style = htf_style, width = htf_width, extend = extend.both, color = col))
 
-dwm_open(string tf, bool use, line[] lns, label[] lbls, dwm_info n, color col) =>
-    if use
+dwm_open(string tf, bool use, line[] lns, label[] lbls, dwm_info n, color col, string tf_limit) =>
+    if use and timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit)
         if lns.size() > 0
             lns.get(0).set_x2(time)
             lbls.get(0).set_x(time)
@@ -293,8 +296,8 @@ dwm_open(string tf, bool use, line[] lns, label[] lbls, dwm_info n, color col) =
             lns.get(0).set_x2(time)
             lbls.get(0).set_x(time)
 
-dwm_hl(string tf, bool use, dwm_hl hl, dwm_info n, color col) =>
-    if use
+dwm_hl(string tf, bool use, dwm_hl hl, dwm_info n, color col, string tf_limit) =>
+    if use and timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit)
         if hl.hi_line.size() > 0
             hl.hi_line.get(0).set_x2(time)
             hl.lo_line.get(0).set_x2(time)
@@ -319,16 +322,15 @@ dwm_hl(string tf, bool use, dwm_hl hl, dwm_info n, color col) =>
             hl.lo_label.get(0).set_x(time)
 
 dwm() =>
-    if timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit)
-        // DWM - Open Lines
-        dwm_open("D", show_d_open, d_line, d_label, d_info, d_color)
-        dwm_open("W", show_w_open, w_line, w_label, w_info, w_color)
-        dwm_open("M", show_m_open, m_line, m_label, m_info, m_color)
+    // DWM - Open Lines
+    dwm_open("D", show_d_open, d_line, d_label, d_info, d_color, tf_limit_daily)
+    dwm_open("W", show_w_open, w_line, w_label, w_info, w_color, tf_limit_weekly)
+    dwm_open("M", show_m_open, m_line, m_label, m_info, m_color, tf_limit_monthly)
 
-        // DWM - Highs and Lows
-        dwm_hl("D", dhl, d_hl, d_info, d_color)
-        dwm_hl("W", whl, w_hl, w_info, w_color)
-        dwm_hl("M", mhl, m_hl, m_info, m_color)
+    // DWM - Highs and Lows
+    dwm_hl("D", dhl, d_hl, d_info, d_color, tf_limit_daily)
+    dwm_hl("W", whl, w_hl, w_info, w_color, tf_limit_weekly)
+    dwm_hl("M", mhl, m_hl, m_info, m_color, tf_limit_monthly)
 
 hz_line(bool use, bool t, hz hz, string txt, color col) =>
     if use
