@@ -2,7 +2,7 @@
 // © Muhammad_Anis
 
 //@version=5
-indicator("My Custom Indicator 2.0", "My Custom Indicator 2.0", true, max_lines_count = 500, max_boxes_count = 500)
+indicator("ICT Killzones + Pivots + EMA", "ICT Killzones + Pivots + EMA", true, max_lines_count = 500, max_boxes_count = 500)
 
 // ---------------------------------------- Constant Functions --------------------------------------------------
 get_line_type(_style) =>
@@ -59,10 +59,10 @@ stop_midpoints = input.bool(true, "Stop Once Mitigated", inline = "mp", group = 
 ext_pivots = input.string("Until Mitigated", "Extend Pivots...", options = ['Until Mitigated', 'Past Mitigation'], group = g_KZ)
 ext_which = input.string("Most Recent", "...From Which Sessions", options = ['Most Recent', 'All'], group = g_KZ)
 
-use_sydney_tokyo = input.bool(true, "", inline = "SYD_TOK", group = g_KZ)
-st_txt = input.string("Sydney + Tokyo", "", inline = "SYD_TOK", group = g_KZ)
-sydney_tokyo = input.session("1800-0200", "", inline = "SYD_TOK", group = g_KZ)
-st_color = input.color(color.aqua, "", inline = "SYD_TOK", group = g_KZ)
+use_asian_session = input.bool(true, "", inline = "ASIAN_SESSION", group = g_KZ)
+ss_txt = input.string("Asian Session", "", inline = "ASIAN_SESSION", group = g_KZ)
+asian_session = input.session("1800-0200", "", inline = "ASIAN_SESSION", group = g_KZ)
+ss_color = input.color(color.aqua, "", inline = "ASIAN_SESSION", group = g_KZ)
 
 use_asia = input.bool(true, "", inline = "ASIA", group = g_KZ)
 as_txt = input.string("Asia", "", inline = "ASIA", group = g_KZ)
@@ -188,7 +188,7 @@ type dwm_info
     float ph = na
     float pl = na
 
-var st_kz = kz.new(st_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
+var ss_kz = kz.new(ss_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 var as_kz = kz.new(as_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 var lo_kz = kz.new(lo_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 var na_kz = kz.new(na_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
@@ -206,7 +206,7 @@ var d_info = dwm_info.new("D")
 var w_info = dwm_info.new("W")
 var m_info = dwm_info.new("M")
 
-t_st = not na(time("", sydney_tokyo, gmt_tz))
+t_ss = not na(time("", asian_session, gmt_tz))
 t_as = not na(time("", asia, gmt_tz))
 t_lo = not na(time("", london, gmt_tz))
 t_na = not na(time("", nyam, gmt_tz))
@@ -418,7 +418,7 @@ manage_kz(kz kz, bool use, bool t, color c, string box_txt) =>
         adjust_out_kz(kz, t)
 
 if enable_killzone
-    manage_kz(st_kz, use_sydney_tokyo, t_st, st_color, st_txt)
+    manage_kz(ss_kz, use_asian_session, t_ss, ss_color, ss_txt)
     manage_kz(as_kz, use_asia, t_as, as_color, as_txt)
     manage_kz(lo_kz, use_london, t_lo, lo_color, lo_txt)
     manage_kz(na_kz, use_nyam, t_na, na_color, na_txt)
