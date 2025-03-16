@@ -20,17 +20,6 @@ get_size(x) =>
         'Large' => size.large
         'Huge' => size.huge
 
-get_table_pos(pos) =>
-    switch pos
-        "Bottom Center" => position.bottom_center
-        "Bottom Left" => position.bottom_left
-        "Bottom Right" => position.bottom_right
-        "Middle Center" => position.middle_center
-        "Middle Left" => position.middle_left
-        "Middle Right" => position.middle_right
-        "Top Center" => position.top_center
-        "Top Left" => position.top_left
-        "Top Right" => position.top_right
 // ---------------------------------------- Constant Functions --------------------------------------------------
 
 // ---------------------------------------- Inputs --------------------------------------------------
@@ -38,9 +27,10 @@ var g_SETTINGS = "Settings"
 
 enable_killzone = input.bool(true, "Enable Killzone", group = g_SETTINGS)
 enable_dwm = input.bool(true, "Enable Day - Week - Month", group = g_SETTINGS)
-enable_ema = input.bool(true, "Enable EMA", group = g_SETTINGS)
+enable_ma = input.bool(true, "Enable MA", group = g_SETTINGS)
 enable_extra_options = input.bool(true, "Enable Extra Options", group = g_SETTINGS)
 
+tf_limit = input.timeframe("30", "Timeframe Limit", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_SETTINGS)
 gmt_tz = input.string('America/New_York', "Timezone", options = ['America/New_York', 'GMT-12', 'GMT-11', 'GMT-10', 'GMT-9', 'GMT-8', 'GMT-7', 'GMT-6', 'GMT-5', 'GMT-4', 'GMT-3', 'GMT-2', 'GMT-1', 'GMT+0', 'GMT+1', 'GMT+2', 'GMT+3', 'GMT+4', 'GMT+5', 'GMT+6', 'GMT+7', 'GMT+8', 'GMT+9', 'GMT+10', 'GMT+11', 'GMT+12', 'GMT+13', 'GMT+14'], tooltip = "Note GMT is not adjusted to reflect Daylight Saving Time changes", group = g_SETTINGS)
 lbl_size = get_size(input.string('Small', "Label Size", options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large', 'Huge'], tooltip = "The size of all labels", group = g_SETTINGS))
 txt_color = input.color(color.black, "Text Color", tooltip = "The color of all label and table text", group = g_SETTINGS)
@@ -49,7 +39,6 @@ cutoff = input.session("1800-1801", "", inline = "CO", group = g_SETTINGS)
 
 var g_KZ = "Killzones"
 
-tf_limit = input.timeframe("60", "Timeframe Limit", tooltip = "Drawings will not appear on timeframes greater than or equal to this", group = g_KZ)
 show_kz = input.bool(true, "Show Killzone Boxes", inline = "KZ", group = g_KZ)
 show_kz_text = input.bool(true, "Display Text", inline = "KZ", group = g_KZ)
 show_pivots = input.bool(true, "Show Pivots", inline = "PV", group = g_KZ)
@@ -60,7 +49,7 @@ ext_pivots = input.string("Until Mitigated", "Extend Pivots...", options = ['Unt
 ext_which = input.string("Most Recent", "...From Which Sessions", options = ['Most Recent', 'All'], group = g_KZ)
 
 use_asian_session = input.bool(true, "", inline = "ASIAN_SESSION", group = g_KZ)
-ss_txt = input.string("Asian Session", "", inline = "ASIAN_SESSION", group = g_KZ)
+ss_txt = input.string("", "", inline = "ASIAN_SESSION", group = g_KZ)
 asian_session = input.session("1800-0200", "", inline = "ASIAN_SESSION", group = g_KZ)
 ss_color = input.color(color.aqua, "", inline = "ASIAN_SESSION", group = g_KZ)
 
@@ -121,31 +110,31 @@ m_color = input.color(color.purple, "", inline = "MO", group = g_DWM)
 htf_style = get_line_type(input.string(defval = 'Solid', title = "Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "D0", group = g_DWM))
 htf_width = input.int(2, "", inline = "D0", group = g_DWM)
 
-var g_EMA = "EMA"
+var g_MA = "MA"
 
-use_ema1 = input.bool(true, "EMA 1", inline="EMA1", group=g_EMA)
-type_ema1 = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA1", group=g_EMA)
-source_ema1 = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA1", group=g_EMA)
-length_ema1 = input.int(5, "", inline="EMA1", group=g_EMA)
-color_ema1 = input.color(color.blue, "", inline="EMA1", group=g_EMA)
+use_ma1 = input.bool(true, "MA 1", inline="MA1", group=g_MA)
+type_ma1 = input.string("EMA", "", options=["SMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"], inline="MA1", group=g_MA)
+source_ma1 = input.string("close", "", options=["open", "high", "low", "close", "hl2", "hlc3", "ohlc4", "hlcc4"], inline="MA1", group=g_MA)
+length_ma1 = input.int(5, "", inline="MA1", group=g_MA)
+color_ma1 = input.color(color.blue, "", inline="MA1", group=g_MA)
 
-use_ema2 = input.bool(true, "EMA 2", inline="EMA2", group=g_EMA)
-type_ema2 = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA2", group=g_EMA)
-source_ema2 = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA2", group=g_EMA)
-length_ema2 = input.int(50, "", inline="EMA2", group=g_EMA)
-color_ema2 = input.color(color.black, "", inline="EMA2", group=g_EMA)
+use_ma2 = input.bool(true, "MA 2", inline="MA2", group=g_MA)
+type_ma2 = input.string("EMA", "", options=["SMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"], inline="MA2", group=g_MA)
+source_ma2 = input.string("close", "", options=["open", "high", "low", "close", "hl2", "hlc3", "ohlc4", "hlcc4"], inline="MA2", group=g_MA)
+length_ma2 = input.int(50, "", inline="MA2", group=g_MA)
+color_ma2 = input.color(color.black, "", inline="MA2", group=g_MA)
 
-use_ema3 = input.bool(false, "EMA 3", inline="EMA3", group=g_EMA)
-type_ema3 = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA3", group=g_EMA)
-source_ema3 = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA3", group=g_EMA)
-length_ema3 = input.int(100, "", inline="EMA3", group=g_EMA)
-color_ema3 = input.color(color.green, "", inline="EMA3", group=g_EMA)
+use_ma3 = input.bool(false, "MA 3", inline="MA3", group=g_MA)
+type_ma3 = input.string("EMA", "", options=["SMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"], inline="MA3", group=g_MA)
+source_ma3 = input.string("close", "", options=["open", "high", "low", "close", "hl2", "hlc3", "ohlc4", "hlcc4"], inline="MA3", group=g_MA)
+length_ma3 = input.int(100, "", inline="MA3", group=g_MA)
+color_ma3 = input.color(color.green, "", inline="MA3", group=g_MA)
 
-use_ema4 = input.bool(true, "EMA 4", inline="EMA4", group=g_EMA)
-type_ema4 = input.string("EMA", "", options=["SMA", "EMA"], inline="EMA4", group=g_EMA)
-source_ema4 = input.string("close", "", options=["open", "high", "low", "close"], inline="EMA4", group=g_EMA)
-length_ema4 = input.int(200, "", inline="EMA4", group=g_EMA)
-color_ema4 = input.color(color.red, "", inline="EMA4", group=g_EMA)
+use_ma4 = input.bool(true, "MA 4", inline="MA4", group=g_MA)
+type_ma4 = input.string("EMA", "", options=["SMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"], inline="MA4", group=g_MA)
+source_ma4 = input.string("close", "", options=["open", "high", "low", "close", "hl2", "hlc3", "ohlc4", "hlcc4"], inline="MA4", group=g_MA)
+length_ma4 = input.int(200, "", inline="MA4", group=g_MA)
+color_ma4 = input.color(color.red, "", inline="MA4", group=g_MA)
 
 var g_Extra_Options = "Extra Options"
 
@@ -270,9 +259,13 @@ get_source(source) =>
         "high" => high
         "low" => low
         "close" => close
+        "hl2" => hl2
+        "hlc3" => hlc3
+        "ohlc4" => ohlc4
+        "hlcc4" => hlcc4
 
 get_ma(type, source, length) =>
-    type == "SMA" ? ta.sma(source, length) : ta.ema(source, length)
+    type == 'SMA' ? ta.sma(source, length) : type == 'EMA' ? ta.ema(source, length) : type == 'SMMA (RMA)' ? ta.rma(source, length) : type == 'WMA' ? ta.wma(source, length) : ta.vwma(source, length)
 
 // ---------------------------------------- Functions --------------------------------------------------
 
@@ -333,7 +326,7 @@ dwm() =>
     dwm_hl("M", mhl, m_hl, m_info, m_color, tf_limit_monthly)
 
 hz_line(bool use, bool t, hz hz, string txt, color col) =>
-    if use
+    if use and timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit)
         if t and not t[1]
             hz.LN.unshift(line.new(bar_index, open, bar_index, open, style = true_day_open_style, width = true_day_open_width, color = col))
             hz.LB.unshift(label.new(bar_index, open, txt, style = label.style_label_left, color = transparent, textcolor = txt_color, size = lbl_size))
@@ -431,23 +424,23 @@ if enable_dwm
 if enable_extra_options
     hz_line(use_true_day_open, t_tdo, hz_tdo, "True Day Open", true_day_open_color)
 
-if enable_ema
-    if use_ema1
-        source1 = get_source(source_ema1)
-        ma1 := get_ma(type_ema1, source1, length_ema1)
-    if use_ema2
-        source2 = get_source(source_ema2)
-        ma2 := get_ma(type_ema2, source2, length_ema2)
-    if use_ema3
-        source3 = get_source(source_ema3)
-        ma3 := get_ma(type_ema3, source3, length_ema3)
-    if use_ema4
-        source4 = get_source(source_ema4)
-        ma4 := get_ma(type_ema4, source4, length_ema4)
+if enable_ma
+    if use_ma1
+        source1 = get_source(source_ma1)
+        ma1 := get_ma(type_ma1, source1, length_ma1)
+    if use_ma2
+        source2 = get_source(source_ma2)
+        ma2 := get_ma(type_ma2, source2, length_ma2)
+    if use_ma3
+        source3 = get_source(source_ma3)
+        ma3 := get_ma(type_ma3, source3, length_ma3)
+    if use_ma4
+        source4 = get_source(source_ma4)
+        ma4 := get_ma(type_ma4, source4, length_ma4)
 
-plot(use_ema1 ? ma1 : na, title="EMA 1", color=color_ema1, linewidth=1)
-plot(use_ema2 ? ma2 : na, title="EMA 2", color=color_ema2, linewidth=1)
-plot(use_ema3 ? ma3 : na, title="EMA 3", color=color_ema3, linewidth=1)
-plot(use_ema4 ? ma4 : na, title="EMA 4", color=color_ema4, linewidth=1)
+plot(use_ma1 ? ma1 : na, title="MA 1", color=color_ma1, linewidth=1)
+plot(use_ma2 ? ma2 : na, title="MA 2", color=color_ma2, linewidth=1)
+plot(use_ma3 ? ma3 : na, title="MA 3", color=color_ma3, linewidth=1)
+plot(use_ma4 ? ma4 : na, title="MA 4", color=color_ma4, linewidth=1)
 
 // ---------------------------------------- Core Logic --------------------------------------------------
