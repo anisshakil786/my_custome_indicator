@@ -149,11 +149,18 @@ color_ma4 = input.color(color.red, "", inline="MA4", group=g_MA)
 
 var g_Extra_Options = "<<==== Extra Options ====>>"
 
-use_true_day_open = input.bool(true, "True Day Open", inline="TDO", group = g_Extra_Options)
-// open_unlimited      = input.bool(false, "Unlimited", tooltip = "Unlimited will show as many of the selected lines as possible. Otherwise, the session drawing limit will be used", group = g_Extra_Options)
-true_day_open_style = get_line_type(input.string(defval='Solid', title="", options=['Solid', 'Dotted', 'Dashed'], inline="TDO", group = g_Extra_Options))
-true_day_open_width = input.int(1, "", inline="TDO", group = g_Extra_Options)
-true_day_open_color = input.color(color.rgb(54, 58, 69, 70), "", inline="TDO", group = g_Extra_Options)
+use_h1 = input.bool(true, "", inline = "H1", group = g_Extra_Options)
+h1_text = input.string("True Day Open", "", inline = "H1", group = g_Extra_Options)
+h1 = input.session("0000-0001", "", inline = "H1", group = g_Extra_Options)
+h1_color = input.color(color.black, "", inline = "H1", group = g_Extra_Options)
+
+use_h2 = input.bool(false, "", inline = "H2", group = g_Extra_Options)
+h2_text = input.string("", "", inline = "H2", group = g_Extra_Options)
+h2 = input.session("0600-0601", "", inline = "H2", group = g_Extra_Options)
+h2_color = input.color(color.black, "", inline = "H2", group = g_Extra_Options)
+
+hz_style = get_line_type(input.string(defval = 'Dotted', title = "HL Style", options = ['Solid', 'Dotted', 'Dashed'], inline = "H0", group = g_Extra_Options))
+hz_width = input.int(1, "", inline = "H0", group = g_Extra_Options)
 
 // ---------------------------------------- Inputs --------------------------------------------------
 
@@ -202,8 +209,8 @@ var na_kz = kz.new(na_txt, array.new_box(), array.new_line(), array.new_line(), 
 var nl_kz = kz.new(nl_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 var np_kz = kz.new(np_txt, array.new_box(), array.new_line(), array.new_line(), array.new_line(), array.new_bool(), array.new_bool(), array.new_bool())
 
-var hz_tdo = hz.new(array.new_line(), array.new_label(), array.new_bool())
-var float true_day_open_price = na
+var hz_h1 = hz.new(array.new_line(), array.new_label(), array.new_bool())
+var hz_h2 = hz.new(array.new_line(), array.new_label(), array.new_bool())
 
 var d_hl = dwm_hl.new(array.new_line(), array.new_line(), array.new_label(), array.new_label())
 var w_hl = dwm_hl.new(array.new_line(), array.new_line(), array.new_label(), array.new_label())
@@ -223,7 +230,8 @@ t_nl = not na(time("", nylu, gmt_tz))
 t_np = not na(time("", nypm, gmt_tz))
 t_co = not na(time("", cutoff, gmt_tz))
 
-t_tdo = not na(time("", "0000-0001", gmt_tz))
+t_h1 = not na(time("", h1, gmt_tz))
+t_h2 = not na(time("", h2, gmt_tz))
 
 var d_sep_line = array.new_line()
 var w_sep_line = array.new_line()
@@ -354,7 +362,7 @@ dwm() =>
 hz_line(bool use, bool t, hz hz, string txt, color col) =>
     if use and timeframe.in_seconds("") <= timeframe.in_seconds(tf_limit)
         if t and not t[1]
-            hz.LN.unshift(line.new(bar_index, open, bar_index, open, style = true_day_open_style, width = true_day_open_width, color = col))
+            hz.LN.unshift(line.new(bar_index, open, bar_index, open, style = hz_style, width = hz_width, color = col))
             hz.LB.unshift(label.new(bar_index, open, txt, style = label.style_label_left, color = transparent, textcolor = txt_color, size = lbl_size))
             array.unshift(hz.CO, false)
             if hz.LN.size() > max_days
@@ -467,7 +475,8 @@ if enable_dwm
     dwm()
 
 if enable_extra_options
-    hz_line(use_true_day_open, t_tdo, hz_tdo, "True Day Open", true_day_open_color)
+    hz_line(use_h1, t_h1, hz_h1, h1_text, h1_color)
+    hz_line(use_h2, t_h2, hz_h2, h2_text, h2_color)
 
 if enable_ma
     if use_ma1
